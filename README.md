@@ -220,15 +220,15 @@ Through this project, the following concepts were explored:
 
 ### Register student page
 
-![Register](screenshots/register_students.png)
+![Register_Student_Page](screenshots/register_students.png)
 
 ### Mark Attendance Page
 
-![Mark](screenshots/mark_attendance.png)
+![Mark_Attendance_Page](screenshots/mark_attendance.png)
 
 ### Attendance logs page
 
-![logs](screenshots/attendance_logs.png)
+![Attendance_logs_Page](screenshots/attendance_logs.png)
 
 ## 📊 Project Status
 
