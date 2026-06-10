@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Mark Attendance{% endblock %}
+
+{% block page_title %}Live Attendance Cam{% endblock %}
+{% block page_subtitle %}Look at the camera to automatically log attendance{% endblock %}
+
+{% block content %}
+<div class="attendance-container">
+    <!-- Camera Viewport Card -->
+    <div class="panel camera-panel">
+        <div class="panel-header">
+            <h2><i data-lucide="video"></i> Live Camera Feed</h2>
+            <span class="live-tag"><span class="live-dot"></span> LIVE</span>
+        </div>
+        <div class="panel-body camera-body">
+            <div class="camera-stream-wrapper">
+                <!-- Bounding border overlays -->
+                <div class="cam-corner top-left"></div>
+                <div class="cam-corner top-right"></div>
+                <div class="cam-corner bottom-left"></div>
+                <div class="cam-corner bottom-right"></div>
+                
+                <!-- Scanner Animation Scanline -->
+                <div class="scanline"></div>
+                
+                <!-- Video Stream Feed -->
+                <img src="{{ url_for('video_feed') }}" alt="Webcam Stream" class="video-feed-img" id="webcam-feed">
+                
+                <div class="camera-placeholder" id="camera-error-placeholder">
+                    <i data-lucide="camera-off" class="placeholder-icon"></i>
+                    <h3>Webcam Stream Offline</h3>
+                    <p>Ensure the camera is connected and not in use by another application.</p>
+                </div>
+            </div>
+            
+            <div class="camera-actions">
+                <p class="camera-status-text">
+                    <i data-lucide="info"></i> Posit your face inside the frame. Wait for a green bounding box to auto-log.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Attendance Log Sidebar -->
+    <div class="panel logs-sidebar-panel">
+        <div class="panel-header">
+            <h2><i data-lucide="clipboard-check"></i> Today's Log (<span id="live-count">0</span>)</h2>
+            <button class="btn-icon" id="btn-refresh-logs" title="Refresh Log List">
+                <i data-lucide="refresh-cw"></i>
+            </button>
+        </div>
+        <div class="panel-body">
+            <div class="live-logs-scroll-area">
+                <div class="live-students-list" id="live-students-list">
+                    <!-- Loaded dynamically via AJAX -->
+                    <div class="empty-list-placeholder">
+                        <i data-lucide="shield-alert"></i>
+                        <p>No students scanned yet today.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Live polling for attendance logs to update the sidebar list
+    document.addEventListener("DOMContentLoaded", function() {
+        const studentsList = document.getElementById('live-students-list');
+        const liveCount = document.getElementById('live-count');
+        const webcamFeed = document.getElementById('webcam-feed');
+        const errorPlaceholder = document.getElementById('camera-error-placeholder');
+        
+        // Error handling if webcam route fails or drops
+        webcamFeed.onerror = function() {
+            webcamFeed.style.display = 'none';
+            errorPlaceholder.style.display = 'flex';
+        };
+
+        function fetchLiveLogs() {
+            fetch('/logs?date=' + new Date().toISOString().split('T')[0])
+                .then(response => response.text())
+                .then(html => {
+                    // We parse the HTML logs page or we can hit our API to make it cleaner.
+                    // Hit the AJAX API instead! Let's fetch /api/stats to get recent_logs and present count.
+                    fetch('/api/stats')
+                        .then(res => res.json())
+                        .then(data => {
+                            liveCount.textContent = data.present_today;
+                            
+                            if (data.recent_logs && data.recent_logs.length > 0) {
+                                studentsList.innerHTML = '';
+                                data.recent_logs.forEach(log => {
+                                    const item = document.createElement('div');
+                                    item.className = 'scanned-student-card';
+                                    item.innerHTML = `
+                                        <div class="student-avatar">
+                                            <i data-lucide="user"></i>
+                                        </div>
+                                        <div class="student-details">
+                                            <h4>${log.name}</h4>
+                                            <p>${log.student_id} • ${log.department}</p>
+                                        </div>
+                                        <div class="scan-time-badge">
+                                            <span>${log.time}</span>
+                                        </div>
+                                    `;
+                                    studentsList.appendChild(item);
+                                });
+                                lucide.createIcons();
+                            } else {
+                                studentsList.innerHTML = `
+                                    <div class="empty-list-placeholder">
+                                        <i data-lucide="shield-alert"></i>
+                                        <p>No students scanned yet today.</p>
+                                    </div>
+                                `;
+                                lucide.createIcons();
+                            }
+                        });
+                })
+                .catch(err => console.error("Error fetching stats:", err));
+        }
+
+        // Poll every 3 seconds
+        const pollInterval = setInterval(fetchLiveLogs, 3000);
+        fetchLiveLogs(); // Run once initially
+        
+        // Manual refresh button
+        document.getElementById('btn-refresh-logs').addEventListener('click', function() {
+            const btn = this;
+            btn.classList.add('spinning');
+            fetchLiveLogs();
+            setTimeout(() => btn.classList.remove('spinning'), 800);
+        });
+
+        // Clean up interval on page leave
+        window.addEventListener('beforeunload', () => {
+            clearInterval(pollInterval);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Overview of system statistics and logs{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <!-- Stat Card 1 -->
+    <div class="stat-card">
+        <div class="stat-card-icon blue">
+            <i data-lucide="users"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>Total Students</h3>
+            <p class="stat-val" id="stat-total">{{ stats.total_students }}</p>
+        </div>
+    </div>
+
+    <!-- Stat Card 2 -->
+    <div class="stat-card">
+        <div class="stat-card-icon green">
+            <i data-lucide="check-circle-2"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>Present Today</h3>
+            <p class="stat-val" id="stat-present">{{ stats.present_today }}</p>
+        </div>
+    </div>
+
+    <!-- Stat Card 3 -->
+    <div class="stat-card">
+        <div class="stat-card-icon red">
+            <i data-lucide="alert-circle"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>Absent Today</h3>
+            <p class="stat-val" id="stat-absent">{{ stats.absent_today }}</p>
+        </div>
+    </div>
+
+    <!-- Stat Card 4 -->
+    <div class="stat-card">
+        <div class="stat-card-icon gold">
+            <i data-lucide="percent"></i>
+        </div>
+        <div class="stat-card-info">
+            <h3>Attendance Rate</h3>
+            <div class="rate-progress-wrapper">
+                <p class="stat-val" id="stat-rate">{{ stats.attendance_rate }}%</p>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width: {{ stats.attendance_rate }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-sections">
+    <!-- Recent Logs -->
+    <div class="panel recent-logs-panel">
+        <div class="panel-header">
+            <h2><i data-lucide="clock-5"></i> Recent Attendance (Today)</h2>
+            <a href="{{ url_for('logs') }}" class="btn-text">View All</a>
+        </div>
+        <div class="panel-body">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-logs-table-body">
+                        {% if stats.recent_logs %}
+                            {% for log in stats.recent_logs %}
+                            <tr>
+                                <td class="id-badge">{{ log.student_id }}</td>
+                                <td><strong>{{ log.name }}</strong></td>
+                                <td>{{ log.department }}</td>
+                                <td>{{ log.time }}</td>
+                                <td><span class="badge badge-success">Present</span></td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="empty-table">No attendance recorded today yet.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="panel quick-actions-panel">
+        <div class="panel-header">
+            <h2><i data-lucide="zap"></i> Quick System Actions</h2>
+        </div>
+        <div class="panel-body">
+            <div class="actions-grid">
+                <a href="{{ url_for('register') }}" class="action-card">
+                    <div class="action-icon">
+                        <i data-lucide="user-plus"></i>
+                    </div>
+                    <h4>Register Student</h4>
+                    <p>Add student to SQLite and initiate face capturing.</p>
+                </a>
+                
+                <a href="{{ url_for('attendance') }}" class="action-card">
+                    <div class="action-icon mark-att">
+                        <i data-lucide="scan"></i>
+                    </div>
+                    <h4>Mark Attendance</h4>
+                    <p>Start live webcam feed to auto-detect and mark attendance.</p>
+                </a>
+            </div>
+
+            <!-- Standalone Script Command Notice -->
+            <div class="terminal-card">
+                <div class="terminal-header">
+                    <span class="term-dot red"></span>
+                    <span class="term-dot yellow"></span>
+                    <span class="term-dot green"></span>
+                    <span class="term-title">Capture Dataset Script</span>
+                </div>
+                <div class="terminal-body">
+                    <p class="comment"># Run this command in your terminal to capture face dataset for a registered student:</p>
+                    <p class="command">python capture_dataset.py</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

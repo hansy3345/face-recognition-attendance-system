@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance Logs{% endblock %}
+
+{% block page_title %}Attendance Logs{% endblock %}
+{% block page_subtitle %}Search, filter, and export student attendance sheets{% endblock %}
+
+{% block content %}
+<div class="logs-container">
+    <!-- Filters Toolbar Panel -->
+    <div class="panel filter-panel">
+        <form method="GET" action="{{ url_for('logs') }}" class="filter-form" id="filter-form">
+            <div class="filter-inputs-grid">
+                <!-- Search input -->
+                <div class="form-group no-margin">
+                    <div class="input-wrapper">
+                        <i data-lucide="search"></i>
+                        <input type="text" name="search" id="search-input" value="{{ search_query }}" placeholder="Search ID, Name, Department...">
+                    </div>
+                </div>
+                
+                <!-- Date input -->
+                <div class="form-group no-margin">
+                    <div class="input-wrapper">
+                        <i data-lucide="calendar"></i>
+                        <input type="date" name="date" id="date-input" value="{{ selected_date }}">
+                    </div>
+                </div>
+                
+                <!-- Filter action buttons -->
+                <div class="filter-actions-row">
+                    <button type="submit" class="btn btn-primary">
+                        <i data-lucide="sliders-horizontal"></i> Apply Filters
+                    </button>
+                    {% if selected_date or search_query %}
+                        <a href="{{ url_for('logs') }}" class="btn btn-secondary">
+                            <i data-lucide="x"></i> Clear
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Logs Table Panel -->
+    <div class="panel logs-table-panel">
+        <div class="panel-header">
+            <h2><i data-lucide="database"></i> Log History Database</h2>
+            <button class="btn btn-secondary btn-sm" id="btn-export-csv">
+                <i data-lucide="download"></i> Export CSV
+            </button>
+        </div>
+        <div class="panel-body">
+            <div class="table-container">
+                <table class="data-table" id="attendance-export-table">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Email Address</th>
+                            <th>Date</th>
+                            <th>Logged Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if logs %}
+                            {% for log in logs %}
+                            <tr>
+                                <td class="id-badge">{{ log.student_id }}</td>
+                                <td><strong>{{ log.name }}</strong></td>
+                                <td>{{ log.department }}</td>
+                                <td>{{ log.email }}</td>
+                                <td>{{ log.date }}</td>
+                                <td>{{ log.time }}</td>
+                                <td><span class="badge badge-success">{{ log.status }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="empty-table">No attendance records found matching filters.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // CSV Export functionality
+        const exportBtn = document.getElementById('btn-export-csv');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                const table = document.getElementById('attendance-export-table');
+                let csvContent = [];
+                
+                // Fetch Headers
+                const headers = Array.from(table.querySelectorAll('thead th'))
+                    .map(th => `"${th.textContent.trim()}"`);
+                csvContent.push(headers.join(','));
+                
+                // Fetch Rows
+                const rows = table.querySelectorAll('tbody tr');
+                
+                // Check if table is empty
+                if (rows.length === 1 && rows[0].querySelector('.empty-table')) {
+                    alert("No data available to export.");
+                    return;
+                }
+                
+                rows.forEach(row => {
+                    const cols = Array.from(row.querySelectorAll('td'))
+                        .map(td => {
+                            // Extract plain text and sanitize double quotes
+                            let text = td.textContent.replace(/"/g, '""').trim();
+                            return `"${text}"`;
+                        });
+                    csvContent.push(cols.join(','));
+                });
+                
+                // Download file
+                const csvBlob = new Blob([csvContent.join('\n')], { type: 'text/csv;charset=utf-8;' });
+                const csvUrl = URL.createObjectURL(csvBlob);
+                const tempLink = document.createElement('a');
+                
+                const dateStr = new Date().toISOString().slice(0, 10);
+                tempLink.setAttribute('href', csvUrl);
+                tempLink.setAttribute('download', `Attendance_Log_${dateStr}.csv`);
+                tempLink.style.display = 'none';
+                
+                document.body.appendChild(tempLink);
+                tempLink.click();
+                document.body.removeChild(tempLink);
+            });
+        }
+    });
+</script>
+{% endblock %}

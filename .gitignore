@@ -1,0 +1,33 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Face recognition generated files
+*.pkl
+*.pickle
+
+# Dataset images
+dataset/*
+!dataset/.gitkeep
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE files
+.vscode/
+.idea/
+
+# Build files
+build/
+dist/
+*.spec
+
+# Environment variables
+.env

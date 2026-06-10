@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Face Recognition Attendance{% endblock %} - Smart FRAS</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <i data-lucide="scan-face"></i>
+                </div>
+                <h2>FRAS<span>System</span></h2>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="{{ url_for('dashboard') }}" class="menu-item {% if request.path == '/' %}active{% endif %}">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{{ url_for('register') }}" class="menu-item {% if request.path == '/register' %}active{% endif %}">
+                    <i data-lucide="user-plus"></i>
+                    <span>Register Student</span>
+                </a>
+                <a href="{{ url_for('attendance') }}" class="menu-item {% if request.path == '/attendance' %}active{% endif %}">
+                    <i data-lucide="camera"></i>
+                    <span>Mark Attendance</span>
+                </a>
+                <a href="{{ url_for('logs') }}" class="menu-item {% if request.path == '/logs' %}active{% endif %}">
+                    <i data-lucide="file-spreadsheet"></i>
+                    <span>Attendance Logs</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="pulse-dot"></span>
+                    <span>System Online</span>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Application Area -->
+        <main class="main-content">
+            <header class="app-header">
+                <div class="header-title">
+                    <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                    <p>{% block page_subtitle %}Overview of system statistics and logs{% endblock %}</p>
+                </div>
+                <div class="header-actions">
+                    <div class="datetime-display" id="current-time-display">
+                        <i data-lucide="clock"></i>
+                        <span id="time-string">--:--:--</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Dynamic Content -->
+            <section class="content-body">
+                {% block content %}{% endblock %}
+            </section>
+        </main>
+    </div>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Update Time Display in Header
+        function updateTime() {
+            const timeDisplay = document.getElementById('time-string');
+            if (timeDisplay) {
+                const now = new Date();
+                timeDisplay.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+    <!-- Main JS file -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
